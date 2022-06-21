@@ -48,46 +48,51 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import requests
 
+
 class AxwarePublisher:
 
     PARENT_DIRECTORY = os.path.join('c:\\', 'path', 'to', 'directory')
     USERNAME = 'YOUR_USERNAME'
     YEAR = 2022
 
-
     SITE = 'http://arscca.org/administrator'
 
-    NEW_CATEGORY_PAGE = 'index.php?option=com_categories&task=category.add&extension=com_content'
+    NEW_CATEGORY_PAGE = (
+        'index.php?option=com_categories&task=category.add&extension=com_content'
+    )
     NEW_ARTICLE_PAGE = 'index.php?option=com_content&task=article.add'
 
-    FILE_TO_SEARCH = '_fin_.htm' # The final results end in this
-    RESULT_TYPES = {'fin': 'Final',
-                    'pax': 'PAX',
-                    'raw': 'Raw',
-                    'sum': 'Summary'}
+    FILE_TO_SEARCH = '_fin_.htm'  # The final results end in this
+    RESULT_TYPES = {
+        'fin': 'Final',
+        'pax': 'PAX',
+        'raw': 'Raw',
+        'sum': 'Summary',
+    }
 
     def __init__(self):
         self._welcome()
-        self.event_short_name = input('Enter event name, such as:  Event 1 (Slide Park)\n  ')
+        self.event_short_name = input(
+            'Enter event name, such as:  Event 1 (Slide Park)\n  '
+        )
         # Password is set later
         self.__passwd = None
 
         # WebDriver is created later so that browser does not distract user
-        self._driver  = None
+        self._driver = None
 
         # _dir is set in _get_directory
-        self._dir     = None
+        self._dir = None
         self._get_directory()
 
     def publish(self):
         print(f'\n\nFull event Name will be:\n  {self._event_full_name}')
         print(f'\nData directory:\n  {self._dir}')
-        time.sleep(5) # Humans require time to absorb information
+        time.sleep(5)  # Humans require time to absorb information
         self._login()
         self._create_event_category()
         self._create_articles()
         print('Done')
-
 
     def _welcome(self):
         print("\nEVENT PUBLISHER by Jack Desert")
@@ -98,7 +103,9 @@ class AxwarePublisher:
         return f'{self.YEAR} Solo II {self.event_short_name}'
 
     def _login(self):
-        self.__passwd = getpass(f'\nIf you are satisfied, enter password for Joomla user {self.USERNAME}\n  ')
+        self.__passwd = getpass(
+            f'\nIf you are satisfied, enter password for Joomla user {self.USERNAME}\n  '
+        )
         print('Opening Browser')
 
         self._driver = webdriver.Firefox()
@@ -132,7 +139,6 @@ class AxwarePublisher:
         self._javascript_save('category')
         time.sleep(1)
 
-
     def _get_directory(self):
         directories = set()
 
@@ -147,14 +153,19 @@ class AxwarePublisher:
                 continue
 
             for subitem in os.listdir(item_path):
-                if os.path.isfile(f'{item_path}/{subitem}') and self.FILE_TO_SEARCH in subitem:
+                if (
+                    os.path.isfile(f'{item_path}/{subitem}')
+                    and self.FILE_TO_SEARCH in subitem
+                ):
                     directories.add(item)
 
         print('')
 
         directories = sorted(directories)
         if not directories:
-            print('ERROR: No directories containing *{self.FILE_TO_SEARCH} in {self.PARENT_DIRECTORY}')
+            print(
+                'ERROR: No directories containing *{self.FILE_TO_SEARCH} in {self.PARENT_DIRECTORY}'
+            )
             exit()
 
         print(f'Which Directory in {self.PARENT_DIRECTORY} contains the results?')
@@ -208,12 +219,13 @@ class AxwarePublisher:
 
         # send_keys is slow when sending zillions of keys,
         # so we use javascript instead
-        self._driver.execute_script(f"var area = document.getElementById('jform_articletext');area.value = '{html_escaped}';")
+        self._driver.execute_script(
+            f"var area = document.getElementById('jform_articletext');area.value = '{html_escaped}';"
+        )
 
         self._javascript_save('article')
 
         time.sleep(1)
-
 
     def _javascript_save(self, page_type):
         self._driver.execute_script(f'Joomla.submitbutton("{page_type}.save")')
@@ -229,11 +241,11 @@ class AxwarePublisher:
     # to select it
     #
     def _select_option_via_search(self, containing_div_id, search_text):
-        search = self._driver.find_element_by_xpath(f"//div[@id='{containing_div_id}']//input")
+        search = self._driver.find_element_by_xpath(
+            f"//div[@id='{containing_div_id}']//input"
+        )
         search.send_keys(search_text)
         search.send_keys(Keys.RETURN)
-
-
 
 
 if __name__ == '__main__':
