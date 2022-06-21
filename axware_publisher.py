@@ -1,10 +1,42 @@
-'''
-This module publishes results located on your thumb drive to arscca.org.
+"""
 
-The general flow is:
-    1. Use this module to publish results to arscca.org
-    2. Use bin/archive_results.py to make a copy of those results
-'''
+This is a utility class for posting results to Joomla.
+It uses selenium and firefox to log in to Joomla and make updates
+on your behalf.
+Each time you run this script, it will ask for your password.
+
+Prerequisites:
+
+A. Install firefox
+B. Install geckodriver
+C. Install python
+D. Pip install the following python packages:
+
+    pip install bs4 selenium requests
+
+
+
+Create PARENT_DIRECTORY on your hard drive (or on a thumb drive).
+Create a subdirectory inside PARENT_DIRECTORY, such as "event-16".
+Export axware results for a single event, and put them into the subdirectory.
+(The subdirectory should only contain the four exported html files. (raw, final, pax, sum))
+
+
+Update the following constants in this python script:
+
+    PARENT_DIRECTORY
+    USERNAME
+    YEAR
+
+Run this script:
+
+    python axware_publisher.py
+
+
+(To upload subsequent events, you only need to create a subdirectory inside PARENT_DIRECTORY,
+export the results to the subdirectory, and run this script.)
+
+"""
 
 from getpass import getpass
 import os
@@ -17,13 +49,16 @@ from selenium.webdriver.common.keys import Keys
 import requests
 
 class AxwarePublisher:
-    SITE = 'http://arscca.org/administrator'
-    USERNAME = 'jackdesert'
+
+    PARENT_DIRECTORY = os.path.join('c:\\', 'path', 'to', 'directory')
+    USERNAME = 'YOUR_USERNAME'
     YEAR = 2022
+
+
+    SITE = 'http://arscca.org/administrator'
 
     NEW_CATEGORY_PAGE = 'index.php?option=com_categories&task=category.add&extension=com_content'
     NEW_ARTICLE_PAGE = 'index.php?option=com_content&task=article.add'
-    USB_DRIVE = '/media/usb'
 
     FILE_TO_SEARCH = '_fin_.htm' # The final results end in this
     RESULT_TYPES = {'fin': 'Final',
@@ -101,8 +136,8 @@ class AxwarePublisher:
     def _get_directory(self):
         directories = set()
 
-        for item in os.listdir(self.USB_DRIVE):
-            item_path = f'{self.USB_DRIVE}/{item}'
+        for item in os.listdir(self.PARENT_DIRECTORY):
+            item_path = f'{self.PARENT_DIRECTORY}/{item}'
             if os.path.isfile(item_path):
                 # We want directories, not files
                 continue
@@ -119,15 +154,15 @@ class AxwarePublisher:
 
         directories = sorted(directories)
         if not directories:
-            print('ERROR: No directories containing *{self.FILE_TO_SEARCH} in {self.USB_DRIVE}')
+            print('ERROR: No directories containing *{self.FILE_TO_SEARCH} in {self.PARENT_DIRECTORY}')
             exit()
 
-        print(f'Which Directory in {self.USB_DRIVE} contains the results?')
+        print(f'Which Directory in {self.PARENT_DIRECTORY} contains the results?')
         for index_zero_based, item in enumerate(directories):
             print(f'  {index_zero_based + 1}. {item}')
 
         dir_index = int(input()) - 1
-        self._dir = f'{self.USB_DRIVE}/{directories[dir_index]}'
+        self._dir = f'{self.PARENT_DIRECTORY}/{directories[dir_index]}'
 
     def _html_content(self, result_type):
         if not result_type in self.RESULT_TYPES:
