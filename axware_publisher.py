@@ -40,13 +40,10 @@ export the results to the subdirectory, and run this script.)
 
 from getpass import getpass
 import os
-import pdb
 import time
 
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import requests
 
 
 class AxwarePublisher:
